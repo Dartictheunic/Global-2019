@@ -15,35 +15,70 @@ public class PlayerController : MonoBehaviour
     [Range(0f, 2f)]
     [Tooltip("Comment la gravité affecte le joueur en mode Rebond (couverture verticale)")]
     public float bouncingGravityModifier;
+    [Range(0f, 20f)]
+    [Tooltip("Force du saut")]
+    public float jumpForce;
+    [Tooltip("Courbe du saut")]
+    public AnimationCurve jumpCurve;
+
+    [Space(20)]
+    [Header("Liens à faire")]
+    public Transform groundPos;
+
+
+    [Space(20)]
     [Header("Variables Debug prog")]
     public PlayerState actualPlayerState = PlayerState.normal;
-
+    public bool canJump;
 
     #region private variables
-    Rigidbody playerBody;
+    bool isJumping;
     float actualGravityModifier;
+    float jumpTime;
+    float currentJumpTime;
+    Rigidbody playerBody;
     #endregion
-    // Start is called before the first frame update
+
     void Start()
     {
         playerBody = GetComponent<Rigidbody>();
         SwitchPlayerState(PlayerState.normal);
+        jumpTime = jumpCurve.keys[jumpCurve.length -1].time;
     }
 
-    // Update is called once per frame
+    public void HitGround()
+    {
+        canJump = true;
+        if (isJumping)
+        {
+            isJumping = false;
+        }
+    }
+
+
     void Update()
     {
-        switch(actualPlayerState)
+        if (Input.GetButtonDown("Jump") && canJump)
         {
-            case PlayerState.normal:
-                {
+            StartJump();
+        }
+    }
 
-                } break;
+    public void StartJump()
+    {
+        isJumping = true;
+        canJump = false;
+        currentJumpTime = 0f;
+    }
 
-            case PlayerState.bouncing:
-                {
+    public void UpdateJump()
+    {
+        currentJumpTime += Time.deltaTime;
+        playerBody.velocity += new Vector3(0, jumpForce * jumpCurve.Evaluate(currentJumpTime), 0);
 
-                } break;
+        if(currentJumpTime >= jumpTime)
+        {
+            isJumping = false;
         }
     }
 
@@ -51,6 +86,11 @@ public class PlayerController : MonoBehaviour
     {
         ApplyGravityOnPlayer();
         MovePlayerOnXZPlan();
+
+        if(isJumping)
+        {
+            UpdateJump();
+        }
     }
 
     public void MovePlayerOnXZPlan()
@@ -97,6 +137,13 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "Ground" && collision.gameObject.transform.position.y < groundPos.position.y)
+        {
+            HitGround();
+        }
+    }
 
     public enum PlayerState
     {
