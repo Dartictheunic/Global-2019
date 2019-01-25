@@ -66,7 +66,6 @@ public class PlayerController : MonoBehaviour
 
     public void ApplyGravityOnPlayer()
     {
-        Debug.Log(Physics.gravity);
         playerBody.AddForce(Physics.gravity.x, Physics.gravity.y * actualGravityModifier, Physics.gravity.z);
     }
 
