@@ -137,7 +137,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.E) && canSwap)
+        if (Input.GetButtonDown("Swap") && canSwap)
         {
             SwitchPlayerState(PlayerState.bouncing);
         }
