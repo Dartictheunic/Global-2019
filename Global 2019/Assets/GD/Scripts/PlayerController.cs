@@ -137,8 +137,6 @@ public class PlayerController : MonoBehaviour
 
     public void UpdateJump()
     {
-        
-
         switch (actualPlayerState)
         {
             case PlayerState.normal:

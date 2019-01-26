@@ -19,6 +19,8 @@ public class IPickedSomething : MonoBehaviour
     [SerializeField]
     private GameObject inSlot;
 
+    private Vector3 slotDifferenceAtPickup;
+    private Transform slotOldTransform;
     private void Start()
     {
         distancesToPlayer = new List<float>();
@@ -45,20 +47,12 @@ public class IPickedSomething : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown("f") && poolingAnObject == true)
-        {
-            distancesToPlayer.Clear();
-            GameObject lastObject = inSlot;
-            inSlot = slotVide;
-            Drop(lastObject);
-        }
-        else if (Input.GetKeyDown("f") && poolingAnObject == false && objectInRange.Count > 1)
+        if (Input.GetKeyDown("f") && poolingAnObject == false && objectInRange.Count > 1)
         {
             for (int i = 0; i < objectInRange.Count; i++)
             {
                 float distanceToPlayer = Vector3.Distance(transform.position, objectInRange[i].transform.position);
                 distancesToPlayer.Add(distanceToPlayer);
-
             }
 
             ReorganizeLists();
@@ -67,11 +61,18 @@ public class IPickedSomething : MonoBehaviour
             PickUp(inSlot);
         }
 
-        if (Input.GetKeyDown("f") && poolingAnObject == false && objectInRange.Count == 1)
+        else if (Input.GetKeyDown("f") && poolingAnObject == false && objectInRange.Count == 1)
         {
             inSlot = objectInRange[0];
             PickUp(inSlot);
         }
+
+        else if (Input.GetKeyDown("f") && poolingAnObject == true)
+        {
+            distancesToPlayer.Clear();
+            Drop(inSlot);
+        }
+
 
 
 
@@ -99,22 +100,21 @@ public class IPickedSomething : MonoBehaviour
 
     private void PickUp(GameObject child)
     {
+        poolingAnObject = true;
+        slotOldTransform = child.transform.parent;
+        slotDifferenceAtPickup = child.transform.position - transform.position;
         child.transform.position = main.transform.position;
-        child.GetComponent<Rigidbody>().isKinematic = true;
         child.GetComponent<Collider>().isTrigger = true;
         child.transform.parent = main.transform;
-        poolingAnObject = true;
-        print("Pickup");
-        print(child.name);
     }
 
     private void Drop(GameObject lastObject)
     {
-        lastObject.transform.parent = lastObject.transform;
-        lastObject.GetComponent<Rigidbody>().isKinematic = false;
+        lastObject.transform.parent = slotOldTransform;
+        lastObject.transform.position += slotDifferenceAtPickup;
         lastObject.GetComponent<Collider>().isTrigger = false;
+        lastObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
         poolingAnObject = false;
-        print("drop");
-
+        inSlot = slotVide;
     }
 }
