@@ -9,12 +9,14 @@ public class PlayerController : MonoBehaviour
     public float baseSpeed;
     [Tooltip("Vitesse maximale du joueur")]
     public float maxSpeed;
+    [Tooltip("Vitesse maximale du joueur en position verticale")]
+    public float maxVerticalPositionSpeed;
     [Range(0f, 2f)]
     [Tooltip("Comment la gravité affecte le joueur en mode normal")]
     public float baseGravityModifier;
     [Range(0f, 2f)]
     [Tooltip("Comment la gravité affecte le joueur en mode Rebond (couverture verticale)")]
-    public float bouncingGravityModifier;
+    public float verticalPositionGravityModifier;
     [Range(0f, 20f)]
     [Tooltip("Force du saut")]
     public float jumpForce;
@@ -48,10 +50,46 @@ public class PlayerController : MonoBehaviour
 
     public void HitGround()
     {
-        canJump = true;
-        if (isJumping)
+        switch (actualPlayerState)
         {
-            isJumping = false;
+            case PlayerState.normal:
+                {
+                    canJump = true;
+                    if (isJumping)
+                    {
+                        isJumping = false;
+                    }
+                }
+                break;
+
+            case PlayerState.bouncing:
+                {
+
+                }
+                break;
+        }
+    }
+
+    public void Bounce()
+    {
+        switch (actualPlayerState)
+        {
+            case PlayerState.normal:
+                {
+
+                }
+                break;
+
+            case PlayerState.bouncing:
+                {
+                    playerBody.velocity += new Vector3(0, -playerBody.velocity.y * 1.9f, 0);
+                    canJump = true;
+                    if (isJumping)
+                    {
+                        isJumping = false;
+                    }
+                }
+                break;
         }
     }
 
@@ -62,23 +100,70 @@ public class PlayerController : MonoBehaviour
         {
             StartJump();
         }
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            SwitchPlayerState(PlayerState.bouncing);
+        }
+
+        if (Input.GetButtonDown("Fire2"))
+        {
+            SwitchPlayerState(PlayerState.normal);
+        }
     }
 
     public void StartJump()
     {
-        isJumping = true;
-        canJump = false;
-        currentJumpTime = 0f;
+        switch (actualPlayerState)
+        {
+            case PlayerState.normal:
+                {
+                    isJumping = true;
+                    canJump = false;
+                    currentJumpTime = 0f;
+                }
+                break;
+
+            case PlayerState.bouncing:
+                {
+                    isJumping = true;
+                    canJump = false;
+                    currentJumpTime = 0f;
+                    playerBody.velocity += new Vector3(0, -playerBody.velocity.y * 1.9f, 0);
+                }
+                break;
+        }
     }
 
     public void UpdateJump()
     {
-        currentJumpTime += Time.deltaTime;
-        playerBody.velocity += new Vector3(0, jumpForce * jumpCurve.Evaluate(currentJumpTime), 0);
+        
 
-        if(currentJumpTime >= jumpTime)
+        switch (actualPlayerState)
         {
-            isJumping = false;
+            case PlayerState.normal:
+                {
+                    currentJumpTime += Time.deltaTime;
+                    playerBody.velocity += new Vector3(0, jumpForce * jumpCurve.Evaluate(currentJumpTime), 0);
+
+                    if (currentJumpTime >= jumpTime)
+                    {
+                        isJumping = false;
+                    }
+                }
+                break;
+
+            case PlayerState.bouncing:
+                {
+                    currentJumpTime += Time.deltaTime;
+                    playerBody.velocity += new Vector3(0, - jumpForce, 0);
+
+                    if (currentJumpTime >= jumpTime)
+                    {
+                        isJumping = false;
+                    }
+                }
+                break;
         }
     }
 
@@ -95,7 +180,20 @@ public class PlayerController : MonoBehaviour
 
     public void MovePlayerOnXZPlan()
     {
-        playerBody.velocity = Vector3.Lerp(playerBody.velocity, PlayerInputTransformed() * maxSpeed, Time.deltaTime * baseSpeed);
+        switch (actualPlayerState)
+        {
+            case PlayerState.normal:
+                {
+                    playerBody.velocity = Vector3.Lerp(playerBody.velocity, PlayerInputTransformed() * maxSpeed, Time.deltaTime * baseSpeed);
+                }
+                break;
+
+            case PlayerState.bouncing:
+                {
+                    playerBody.velocity = Vector3.Lerp(playerBody.velocity, new Vector3(PlayerInputTransformed().x * maxVerticalPositionSpeed, playerBody.velocity.y, PlayerInputTransformed().z * maxVerticalPositionSpeed), Time.deltaTime * baseSpeed);
+                }
+                break;
+        }
     }
 
     public Vector3 PlayerInputTransformed()
@@ -111,30 +209,36 @@ public class PlayerController : MonoBehaviour
 
     public void SwitchPlayerState(PlayerState newstate)
     {
-        switch(newstate)
+        if (newstate != actualPlayerState)
         {
-            case PlayerState.normal:
-                {
-                    if (actualGravityModifier != baseGravityModifier)
+            switch(newstate)
+            {
+                case PlayerState.normal:
                     {
-                        actualGravityModifier = baseGravityModifier;
-                    }
+                        if (actualGravityModifier != baseGravityModifier)
+                        {
+                            actualGravityModifier = baseGravityModifier;
+                        }
 
-                } break;
+                    } break;
 
-            case PlayerState.bouncing:
-                {
-                    if (actualGravityModifier != bouncingGravityModifier)
+                case PlayerState.bouncing:
                     {
-                        actualGravityModifier = bouncingGravityModifier;
-                    }
+                        if (actualGravityModifier != verticalPositionGravityModifier)
+                        {
+                            actualGravityModifier = verticalPositionGravityModifier;
+                        }
 
-                }
-                break;
+                        if (!canJump)
+                        {
+                            canJump = true;
+                        }
+                    }
+                    break;
+            }
+
+            actualPlayerState = newstate;
         }
-
-        actualPlayerState = newstate;
-
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -142,6 +246,14 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.tag == "Ground" && collision.gameObject.transform.position.y < groundPos.position.y)
         {
             HitGround();
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Ground" && other.transform.position.y < groundPos.position.y)
+        {
+            Bounce();
         }
     }
 
