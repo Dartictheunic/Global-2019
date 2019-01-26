@@ -34,6 +34,7 @@ public class PlayerController : MonoBehaviour
     [Header("Variables Debug prog")]
     public PlayerState actualPlayerState = PlayerState.normal;
     public bool canJump;
+    public AnimationCurve playerVerticalVelocity;
 
     #region private variables
     bool isJumping;
@@ -69,12 +70,22 @@ public class PlayerController : MonoBehaviour
 
         if (actualPlayerState == PlayerState.bouncing)
         {
-            Debug.Log("Suce");
-            playerBody.velocity = new Vector3(playerBody.velocity.x, 0, playerBody.velocity.z);
-            playerBody.AddForce(0, accumulatedVelocityDuringFastFall, 0);
+            Bounce(accumulatedVelocityDuringFastFall);
             accumulatedVelocityDuringFastFall = 0f;
+            isFalling = false;
             SwitchPlayerState(PlayerState.normal);
         }
+    }
+
+    public void Bounce(float force)
+    {
+        ResetPlayerVerticalVelocity();
+        playerBody.AddForce(0, force * transform.lossyScale.y, 0);
+    }
+
+    public void ResetPlayerVerticalVelocity()
+    {
+        playerBody.velocity = Vector3.Scale(new Vector3(playerBody.velocity.x, 0, playerBody.velocity.z), transform.lossyScale);
     }
 
 
@@ -101,7 +112,7 @@ public class PlayerController : MonoBehaviour
     public void UpdateJump()
     {
         currentJumpTime += Time.deltaTime;
-        playerBody.velocity += new Vector3(0, jumpForce * jumpCurve.Evaluate(currentJumpTime), 0);
+        playerBody.velocity += Vector3.Scale(new Vector3(0, jumpForce * jumpCurve.Evaluate(currentJumpTime), 0), transform.lossyScale);
 
         if (Input.GetKeyDown(KeyCode.E) && canSwap)
         {
@@ -111,9 +122,10 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        Debug.Log(actualGravityModifier);
         MovePlayerOnXZPlan();
         ApplyGravityOnPlayer();
-
+        playerVerticalVelocity.AddKey(Time.time, playerBody.velocity.y);
         if (isFalling)
         {
             accumulatedVelocityDuringFastFall += Mathf.Abs(playerBody.velocity.y);
@@ -123,7 +135,8 @@ public class PlayerController : MonoBehaviour
     public void Fastfall()
     {
         isJumping = false;
-        playerBody.AddForce(0, -fastFallSpeed, 0);
+        ResetPlayerVerticalVelocity();
+        playerBody.AddForce(Vector3.Scale(new Vector3( 0, -fastFallSpeed, 0), transform.lossyScale)) ;
         isFalling = true;
     }
 
@@ -147,14 +160,13 @@ public class PlayerController : MonoBehaviour
 
     public Vector3 PlayerInputTransformed()
     {
-        Vector3 rawInput = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+        Vector3 rawInput = Vector3.Scale(new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")), transform.lossyScale);
         return rawInput;
     }
 
     public void ApplyGravityOnPlayer()
     {
-        playerBody.AddForce(Physics.gravity.x, Physics.gravity.y * actualGravityModifier, Physics.gravity.z);
-        Debug.Log(actualGravityModifier);
+        playerBody.AddForce(Vector3.Scale( new Vector3(Physics.gravity.x, Physics.gravity.y * actualGravityModifier, Physics.gravity.z), transform.lossyScale));
     }
 
     public void SwitchPlayerState(PlayerState newstate)
