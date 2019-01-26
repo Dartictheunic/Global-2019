@@ -22,7 +22,7 @@ public class BurningGestion : MonoBehaviour
         if (PermanentBurn)
         {
             totalHeat = Mathf.Infinity;
-            isBurning = true;
+            StartBurning();
         }
     }
 
@@ -51,6 +51,7 @@ public class BurningGestion : MonoBehaviour
     public void StartBurning()
     {
         isBurning = true;
+        GetComponentInChildren<IHeatEffect>().StartHeatEffect();
     }
 
     public void Burn()
@@ -65,6 +66,8 @@ public class BurningGestion : MonoBehaviour
     public void StopBurning()
     {
         isBurning = false;
+        GetComponentInChildren<IHeatEffect>().StopHeatEffect();
+
     }
 
     private void FixedUpdate()
