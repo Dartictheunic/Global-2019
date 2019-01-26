@@ -11,6 +11,8 @@ public class PlayerController : MonoBehaviour
     public float maxSpeed;
     [Tooltip("Vitesse maximale du joueur en position verticale")]
     public float maxVerticalPositionSpeed;
+    [Tooltip("Vitesse de descente du piqué")]
+    public float fastFallSpeed;
     [Range(0f, 2f)]
     [Tooltip("Comment la gravité affecte le joueur en mode normal")]
     public float baseGravityModifier;
@@ -35,10 +37,14 @@ public class PlayerController : MonoBehaviour
 
     #region private variables
     bool isJumping;
+    bool isFalling;
+    bool canSwap;
     float actualGravityModifier;
     float jumpTime;
     float currentJumpTime;
     Rigidbody playerBody;
+    [SerializeField]
+    float accumulatedVelocityDuringFastFall;
     #endregion
 
     void Start()
@@ -50,46 +56,24 @@ public class PlayerController : MonoBehaviour
 
     public void HitGround()
     {
-        switch (actualPlayerState)
+        canJump = true;
+        if (isJumping)
         {
-            case PlayerState.normal:
-                {
-                    canJump = true;
-                    if (isJumping)
-                    {
-                        isJumping = false;
-                    }
-                }
-                break;
-
-            case PlayerState.bouncing:
-                {
-
-                }
-                break;
+            isJumping = false;
         }
-    }
 
-    public void Bounce()
-    {
-        switch (actualPlayerState)
+        if (!canSwap && actualPlayerState == PlayerState.normal)
         {
-            case PlayerState.normal:
-                {
+            canSwap = true;
+        }
 
-                }
-                break;
-
-            case PlayerState.bouncing:
-                {
-                    playerBody.velocity += new Vector3(0, -playerBody.velocity.y * 1.9f, 0);
-                    canJump = true;
-                    if (isJumping)
-                    {
-                        isJumping = false;
-                    }
-                }
-                break;
+        if (actualPlayerState == PlayerState.bouncing)
+        {
+            Debug.Log("Suce");
+            playerBody.velocity = new Vector3(playerBody.velocity.x, 0, playerBody.velocity.z);
+            playerBody.AddForce(0, accumulatedVelocityDuringFastFall, 0);
+            accumulatedVelocityDuringFastFall = 0f;
+            SwitchPlayerState(PlayerState.normal);
         }
     }
 
@@ -101,79 +85,46 @@ public class PlayerController : MonoBehaviour
             StartJump();
         }
 
-        if (Input.GetButtonDown("Fire1"))
+        if (isJumping)
         {
-            SwitchPlayerState(PlayerState.bouncing);
-        }
-
-        if (Input.GetButtonDown("Fire2"))
-        {
-            SwitchPlayerState(PlayerState.normal);
+            UpdateJump();
         }
     }
 
     public void StartJump()
     {
-        switch (actualPlayerState)
-        {
-            case PlayerState.normal:
-                {
-                    isJumping = true;
-                    canJump = false;
-                    currentJumpTime = 0f;
-                }
-                break;
-
-            case PlayerState.bouncing:
-                {
-                    isJumping = true;
-                    canJump = false;
-                    currentJumpTime = 0f;
-                    playerBody.velocity += new Vector3(0, -playerBody.velocity.y * 1.9f, 0);
-                }
-                break;
-        }
+        isJumping = true;
+        canJump = false;
+        currentJumpTime = 0f;
     }
 
     public void UpdateJump()
     {
-        switch (actualPlayerState)
+        currentJumpTime += Time.deltaTime;
+        playerBody.velocity += new Vector3(0, jumpForce * jumpCurve.Evaluate(currentJumpTime), 0);
+
+        if (Input.GetKeyDown(KeyCode.E) && canSwap)
         {
-            case PlayerState.normal:
-                {
-                    currentJumpTime += Time.deltaTime;
-                    playerBody.velocity += new Vector3(0, jumpForce * jumpCurve.Evaluate(currentJumpTime), 0);
-
-                    if (currentJumpTime >= jumpTime)
-                    {
-                        isJumping = false;
-                    }
-                }
-                break;
-
-            case PlayerState.bouncing:
-                {
-                    currentJumpTime += Time.deltaTime;
-                    playerBody.velocity += new Vector3(0, - jumpForce, 0);
-
-                    if (currentJumpTime >= jumpTime)
-                    {
-                        isJumping = false;
-                    }
-                }
-                break;
+            SwitchPlayerState(PlayerState.bouncing);
         }
     }
 
     private void FixedUpdate()
     {
-        ApplyGravityOnPlayer();
         MovePlayerOnXZPlan();
+        ApplyGravityOnPlayer();
 
-        if(isJumping)
+        if (isFalling)
         {
-            UpdateJump();
+            accumulatedVelocityDuringFastFall += Mathf.Abs(playerBody.velocity.y);
         }
+    }
+
+    public void Fastfall()
+    {
+        isJumping = false;
+        playerBody.AddForce(0, -fastFallSpeed, 0);
+        isFalling = true;
     }
 
     public void MovePlayerOnXZPlan()
@@ -188,7 +139,7 @@ public class PlayerController : MonoBehaviour
 
             case PlayerState.bouncing:
                 {
-                    playerBody.velocity = Vector3.Lerp(playerBody.velocity, new Vector3(PlayerInputTransformed().x * maxVerticalPositionSpeed, playerBody.velocity.y, PlayerInputTransformed().z * maxVerticalPositionSpeed), Time.deltaTime * baseSpeed);
+                    playerBody.velocity = Vector3.Lerp(playerBody.velocity, PlayerInputTransformed() * maxVerticalPositionSpeed, Time.deltaTime * baseSpeed);
                 }
                 break;
         }
@@ -203,6 +154,7 @@ public class PlayerController : MonoBehaviour
     public void ApplyGravityOnPlayer()
     {
         playerBody.AddForce(Physics.gravity.x, Physics.gravity.y * actualGravityModifier, Physics.gravity.z);
+        Debug.Log(actualGravityModifier);
     }
 
     public void SwitchPlayerState(PlayerState newstate)
@@ -218,6 +170,11 @@ public class PlayerController : MonoBehaviour
                             actualGravityModifier = baseGravityModifier;
                         }
 
+                        if (!canJump)
+                        {
+                            canJump = true;
+                        }
+
                     } break;
 
                 case PlayerState.bouncing:
@@ -227,14 +184,16 @@ public class PlayerController : MonoBehaviour
                             actualGravityModifier = verticalPositionGravityModifier;
                         }
 
-                        if (!canJump)
+                        if (isJumping)
                         {
-                            canJump = true;
+                            Fastfall();
                         }
+
                     }
                     break;
             }
 
+            canSwap = false;
             actualPlayerState = newstate;
         }
     }
@@ -244,14 +203,6 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.tag == "Ground" && collision.gameObject.transform.position.y < groundPos.position.y)
         {
             HitGround();
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.tag == "Ground" && other.transform.position.y < groundPos.position.y)
-        {
-            Bounce();
         }
     }
 
