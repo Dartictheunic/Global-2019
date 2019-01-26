@@ -2387,6 +2387,12 @@ MonoBehaviour:
   groundPos: {fileID: 467035163}
   actualPlayerState: 0
   canJump: 0
+  playerVerticalVelocity:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   accumulatedVelocityDuringFastFall: 0
 --- !u!54 &938234949
 Rigidbody:
@@ -2471,7 +2477,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 938234947}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 256.4843, y: -56.6, z: -77.15608}
+  m_LocalPosition: {x: 273.8, y: -56.6, z: -79.5}
   m_LocalScale: {x: 9.742, y: 9.742, z: 9.742}
   m_Children:
   - {fileID: 772814907}
@@ -3041,15 +3047,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d63a0f04f8225de49be7c6820d646f4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeBurning: 10
   heatProduce: 20
   heatNeeded: 0
-  objectWithBurnAround: []
-  heatAround: []
-  refBurning: []
   isBurning: 0
+  PermanentBurn: 0
   totalHeat: 0
-  checkBurning: 0
 --- !u!65 &1234249597
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4757,15 +4759,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d63a0f04f8225de49be7c6820d646f4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeBurning: 10
   heatProduce: 10
   heatNeeded: 20
-  objectWithBurnAround: []
-  heatAround: []
-  refBurning: []
   isBurning: 0
+  PermanentBurn: 0
   totalHeat: 0
-  checkBurning: 0
 --- !u!65 &2050687963
 BoxCollider:
   m_ObjectHideFlags: 0
