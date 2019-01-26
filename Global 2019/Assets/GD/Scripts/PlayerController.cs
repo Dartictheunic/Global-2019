@@ -70,22 +70,23 @@ public class PlayerController : MonoBehaviour
 
         if (actualPlayerState == PlayerState.bouncing)
         {
-            Bounce(accumulatedVelocityDuringFastFall);
+            AddForcedVerticalVelocity(accumulatedVelocityDuringFastFall);
             accumulatedVelocityDuringFastFall = 0f;
             isFalling = false;
             SwitchPlayerState(PlayerState.normal);
         }
     }
 
-    public void Bounce(float force)
+    public void AddForcedVerticalVelocity(float force)
     {
+        Debug.Log("Adding Velocity");
         ResetPlayerVerticalVelocity();
         playerBody.AddForce(0, force * transform.lossyScale.y, 0);
     }
 
     public void ResetPlayerVerticalVelocity()
     {
-        playerBody.velocity = Vector3.Scale(new Vector3(playerBody.velocity.x, 0, playerBody.velocity.z), transform.lossyScale);
+        playerBody.velocity = new Vector3(playerBody.velocity.x, 0, playerBody.velocity.z);
     }
 
 
