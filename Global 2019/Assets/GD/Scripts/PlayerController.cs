@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     public float maxVerticalPositionSpeed;
     [Tooltip("Vitesse de descente du piqué")]
     public float fastFallSpeed;
+    [Tooltip("Bounciness du joueur")]
+    public float verticalPositionBounciness;
     [Range(0f, 2f)]
     [Tooltip("Comment la gravité affecte le joueur en mode normal")]
     public float baseGravityModifier;
@@ -35,7 +37,9 @@ public class PlayerController : MonoBehaviour
     public PlayerState actualPlayerState = PlayerState.normal;
     public bool canJump;
     public AnimationCurve playerVerticalVelocity;
-
+    public AnimationCurve downVelocityAccumulatedDuringJumpCurve;
+    public float downVelocityAccumulatedDuringJump;
+    public float actualBounciness;
     #region private variables
     bool isJumping;
     bool isFalling;
@@ -44,8 +48,6 @@ public class PlayerController : MonoBehaviour
     float jumpTime;
     float currentJumpTime;
     Rigidbody playerBody;
-    [SerializeField]
-    float accumulatedVelocityDuringFastFall;
     #endregion
 
     void Start()
@@ -55,31 +57,42 @@ public class PlayerController : MonoBehaviour
         jumpTime = jumpCurve.keys[jumpCurve.length -1].time;
     }
 
-    public void HitGround()
+    public void HitGround(GameObject objectTag)
     {
-        canJump = true;
-        if (isJumping)
-        {
-            isJumping = false;
-        }
 
-        if (!canSwap && actualPlayerState == PlayerState.normal)
+        if (objectTag.tag == "Ground")
         {
-            canSwap = true;
+            canJump = true;
+            if (isJumping)
+            {
+                isJumping = false;
+            }
+
+            if (!canSwap && actualPlayerState == PlayerState.normal)
+            {
+                canSwap = true;
+            }
         }
 
         if (actualPlayerState == PlayerState.bouncing)
         {
-            AddForcedVerticalVelocity(accumulatedVelocityDuringFastFall);
-            accumulatedVelocityDuringFastFall = 0f;
-            isFalling = false;
-            SwitchPlayerState(PlayerState.normal);
+            if (objectTag.GetComponent<Trampoline>() == null)
+            {
+                AddForcedVerticalVelocity(downVelocityAccumulatedDuringJump * verticalPositionBounciness);
+                ResetBouncingState();
+            }
         }
+    }
+
+    public void ResetBouncingState()
+    {
+        downVelocityAccumulatedDuringJump = 0f;
+        isFalling = false;
+        SwitchPlayerState(PlayerState.normal);
     }
 
     public void AddForcedVerticalVelocity(float force)
     {
-        Debug.Log("Adding Velocity");
         ResetPlayerVerticalVelocity();
         playerBody.AddForce(0, force * transform.lossyScale.y, 0);
     }
@@ -108,12 +121,21 @@ public class PlayerController : MonoBehaviour
         isJumping = true;
         canJump = false;
         currentJumpTime = 0f;
+        downVelocityAccumulatedDuringJump = 0f;
     }
 
     public void UpdateJump()
     {
         currentJumpTime += Time.deltaTime;
         playerBody.velocity += Vector3.Scale(new Vector3(0, jumpForce * jumpCurve.Evaluate(currentJumpTime), 0), transform.lossyScale);
+        if (playerBody.velocity.y < 0)
+        {
+            var actualVelocity = Mathf.Abs(playerBody.velocity.y);
+            if (actualVelocity > downVelocityAccumulatedDuringJump)
+            {
+                downVelocityAccumulatedDuringJump = actualVelocity;
+            }
+        }
 
         if (Input.GetKeyDown(KeyCode.E) && canSwap)
         {
@@ -123,13 +145,18 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Debug.Log(actualGravityModifier);
         MovePlayerOnXZPlan();
         ApplyGravityOnPlayer();
         playerVerticalVelocity.AddKey(Time.time, playerBody.velocity.y);
+        downVelocityAccumulatedDuringJumpCurve.AddKey(Time.time, downVelocityAccumulatedDuringJump);
         if (isFalling)
         {
-            accumulatedVelocityDuringFastFall += Mathf.Abs(playerBody.velocity.y);
+            var actualForce = Mathf.Abs(playerBody.velocity.y);
+            if (actualForce > downVelocityAccumulatedDuringJump && playerBody.velocity.y < 0)
+            {
+                downVelocityAccumulatedDuringJump = actualForce;
+
+            }
         }
     }
 
@@ -147,21 +174,27 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.normal:
                 {
-                    playerBody.velocity = Vector3.Lerp(playerBody.velocity, PlayerInputTransformed() * maxSpeed, Time.deltaTime * baseSpeed);
+                    playerBody.velocity = Vector3.Lerp(playerBody.velocity, MultiplyVectorValues(PlayerInputTransformed(), maxSpeed), Time.deltaTime * baseSpeed);
                 }
                 break;
 
             case PlayerState.bouncing:
                 {
-                    playerBody.velocity = Vector3.Lerp(playerBody.velocity, PlayerInputTransformed() * maxVerticalPositionSpeed, Time.deltaTime * baseSpeed);
+                    playerBody.velocity = Vector3.Lerp(playerBody.velocity,MultiplyVectorValues(PlayerInputTransformed(), maxVerticalPositionSpeed), Time.deltaTime * baseSpeed);
                 }
                 break;
         }
     }
 
+    public Vector3 MultiplyVectorValues(Vector3 vectorUsed, float speedToUse)
+    {
+        Vector3 vectorNeeded = new Vector3(vectorUsed.x * speedToUse, vectorUsed.y / transform.lossyScale.y, vectorUsed.z * speedToUse);
+        return vectorNeeded;
+    }
+
     public Vector3 PlayerInputTransformed()
     {
-        Vector3 rawInput = Vector3.Scale(new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")), transform.lossyScale);
+        Vector3 rawInput = Vector3.Scale(new Vector3(Input.GetAxisRaw("Horizontal"), playerBody.velocity.y, Input.GetAxisRaw("Vertical")), transform.lossyScale);
         return rawInput;
     }
 
@@ -188,6 +221,8 @@ public class PlayerController : MonoBehaviour
                             canJump = true;
                         }
 
+                        actualBounciness = 1;
+
                     } break;
 
                 case PlayerState.bouncing:
@@ -201,6 +236,7 @@ public class PlayerController : MonoBehaviour
                         {
                             Fastfall();
                         }
+                        actualBounciness = verticalPositionBounciness;
 
                     }
                     break;
@@ -213,9 +249,9 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.tag == "Ground" && collision.gameObject.transform.position.y < groundPos.position.y)
+        if (collision.gameObject.transform.position.y < groundPos.position.y)
         {
-            HitGround();
+            HitGround(collision.gameObject);
         }
     }
 

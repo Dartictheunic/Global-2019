@@ -12,6 +12,7 @@ public class HeatMongolfiereEffect : MonoBehaviour, IHeatEffect
     {
         if (GetComponentInParent<BurningGestion>() == null)
         {
+            UnityEditor.EditorApplication.isPlaying = false;
             throw new System.Exception("Le parent ne peut pas brûler !");
         }
     }
