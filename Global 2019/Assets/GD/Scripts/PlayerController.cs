@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
 
     [Space(20)]
     [Header("Liens à faire")]
+    public Animator playerAnim;
     public Transform groundPos;
     public Transform camPos;
     public Transform rotationTransform;
@@ -45,6 +46,7 @@ public class PlayerController : MonoBehaviour
     bool isJumping;
     bool isFalling;
     bool canSwap;
+    bool isPushing;
     float actualGravityModifier;
     float jumpTime;
     float currentJumpTime;
@@ -73,6 +75,7 @@ public class PlayerController : MonoBehaviour
             {
                 canSwap = true;
             }
+            playerAnim.SetBool("jump", false);
         }
 
         if (actualPlayerState == PlayerState.bouncing)
@@ -83,12 +86,15 @@ public class PlayerController : MonoBehaviour
                 ResetBouncingState();
             }
         }
+
     }
 
     public void ResetBouncingState()
     {
         downVelocityAccumulatedDuringJump = 0f;
         isFalling = false;
+        playerAnim.SetTrigger("bounce");
+        playerAnim.SetBool("jump", true);
         SwitchPlayerState(PlayerState.normal);
     }
 
@@ -120,6 +126,7 @@ public class PlayerController : MonoBehaviour
     public void StartJump()
     {
         isJumping = true;
+        playerAnim.SetBool("jump", true);
         canJump = false;
         currentJumpTime = 0f;
         downVelocityAccumulatedDuringJump = 0f;
@@ -146,7 +153,7 @@ public class PlayerController : MonoBehaviour
 
     public void RotatePlayer()
     {
-        transform.LookAt(rotationTransform);
+        //transform.LookAt(rotationTransform);
     }
 
     private void FixedUpdate()
@@ -162,7 +169,6 @@ public class PlayerController : MonoBehaviour
             if (actualForce > downVelocityAccumulatedDuringJump && playerBody.velocity.y < 0)
             {
                 downVelocityAccumulatedDuringJump = actualForce;
-
             }
         }
     }
@@ -170,6 +176,8 @@ public class PlayerController : MonoBehaviour
     public void Fastfall()
     {
         isJumping = false;
+        playerAnim.SetBool("jump", false);
+        playerAnim.Play("anim_cocooning");
         ResetPlayerVerticalVelocity();
         playerBody.AddForce(Vector3.Scale(new Vector3( 0, -fastFallSpeed, 0), transform.lossyScale)) ;
         isFalling = true;
@@ -208,6 +216,22 @@ public class PlayerController : MonoBehaviour
 
         float moveHorizontal = Input.GetAxisRaw("Horizontal");
         float moveVertical = Input.GetAxisRaw("Vertical");
+
+        if (Mathf.Abs(moveHorizontal) <= 0.1f && Mathf.Abs(moveVertical) <= 0.1f)
+        {
+            playerAnim.SetBool("isMoving", false);
+        }
+
+        else
+        {
+            playerAnim.SetBool("isMoving", true);
+        }
+
+        if (Mathf.Abs(moveHorizontal) >= .1f || Mathf.Abs(moveVertical) >= .1f && !isPushing)
+        {
+            float heading = Mathf.Atan2(moveHorizontal, moveVertical) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, heading + camPos.rotation.eulerAngles.y, 0f);
+        }
 
         Vector3 movement = (fromCameraToMe * moveVertical + camPos.right * moveHorizontal);
         movement = Vector3.Scale(movement, transform.lossyScale);
@@ -268,6 +292,25 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.transform.position.y < groundPos.position.y)
         {
             HitGround(collision.gameObject);
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        var pushable = other.GetComponent<IPushable>();
+        if (pushable != null)
+        {
+            if (Input.GetButton("Push"))
+            {
+                isPushing = true;
+                transform.LookAt(other.gameObject.transform);
+                pushable.Push(playerBody.velocity);
+            }
+
+            else
+            {
+                isPushing = false;
+            }
         }
     }
 

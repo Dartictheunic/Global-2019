@@ -4,36 +4,85 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public float minInput;
-    public float turningSpeed;
-    public Transform player;
-    Vector3 playerLastPos;
-    Vector3 playerNewPos;
+    Camera cam;
+    public bool isControlable;
+    private Vector3 screenPoint;
+    private Vector3 offset;
+    public Transform target;
+    public float distance = 5.0f;
+    public float xSpeed = 50.0f;
+    public float ySpeed = 50.0f;
 
-    private void Awake()
+    public float yMinLimit = -80f;
+    public float yMaxLimit = 80f;
+
+    public float distanceMin = .5f;
+    public float distanceMax = 200f;
+
+    public float smoothTime = 2f;
+
+    public float rotationYAxis = 0.0f;
+    float rotationXAxis = 0.0f;
+
+    float velocityX = 0.0f;
+    float velocityY = 0.0f;
+    float moveDirection = -1;
+
+    public void SetControllable(bool value)
     {
-        playerNewPos = player.position;
-        playerLastPos = player.position;
+        isControlable = value;
     }
-    private void FixedUpdate()
+
+    void Start()
     {
-        //transform.LookAt(player, Vector3.up);
-        if (Mathf.Abs(Input.GetAxisRaw("CamX")) > minInput)
+        cam = GetComponent<Camera>();
+        Vector3 angles = transform.eulerAngles;
+        rotationYAxis = (rotationYAxis == 0) ? angles.y : rotationYAxis;
+        rotationXAxis = angles.x;
+    }
+
+    void LateUpdate()
+    {
+        if (target)
         {
-            transform.RotateAround(player.position, player.up, Input.GetAxisRaw("CamX") * turningSpeed);
+
+            if (isControlable)
+            {
+                velocityX += xSpeed * Input.GetAxis("CamX") * 0.02f;
+                velocityY += ySpeed * Input.GetAxis("CamY") * 0.02f;
+            }
+
+            rotationYAxis += velocityX;
+            rotationXAxis -= velocityY;
+
+            rotationXAxis = ClampAngle(rotationXAxis, yMinLimit, yMaxLimit);
+
+            Quaternion fromRotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0);
+            Quaternion toRotation = Quaternion.Euler(rotationXAxis, rotationYAxis, 0);
+            Quaternion rotation = toRotation;
+
+            Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
+            Vector3 position = rotation * negDistance + target.position;
+
+            transform.rotation = rotation;
+            transform.position = position;
+
+            velocityX = Mathf.Lerp(velocityX, 0, Time.deltaTime * smoothTime);
+            velocityY = Mathf.Lerp(velocityY, 0, Time.deltaTime * smoothTime);
+
+            screenPoint = cam.WorldToScreenPoint(target.transform.position);
+            offset = target.transform.position - cam.ScreenToWorldPoint(new Vector3(moveDirection * Input.mousePosition.x, moveDirection * Input.mousePosition.y, screenPoint.z));
         }
 
-        if (Mathf.Abs(Input.GetAxisRaw("CamY")) > minInput)
-        {
-            transform.RotateAround(player.position, transform.right, Input.GetAxisRaw("CamY") * turningSpeed);
-        }
-
     }
 
-    private void LateUpdate()
+    public static float ClampAngle(float angle, float min, float max)
     {
-        playerNewPos = player.position;
-        transform.position += playerNewPos - playerLastPos;
-        playerLastPos = player.position;
+        if (angle < -360F)
+            angle += 360F;
+        if (angle > 360F)
+            angle -= 360F;
+        return Mathf.Clamp(angle, min, max);
     }
+   
 }
