@@ -15,10 +15,10 @@ public class PlayerController : MonoBehaviour
     public float fastFallSpeed;
     [Tooltip("Bounciness du joueur")]
     public float verticalPositionBounciness;
-    [Range(0f, 2f)]
+    [Range(0f, 8f)]
     [Tooltip("Comment la gravité affecte le joueur en mode normal")]
     public float baseGravityModifier;
-    [Range(0f, 2f)]
+    [Range(0f, 16f)]
     [Tooltip("Comment la gravité affecte le joueur en mode Rebond (couverture verticale)")]
     public float verticalPositionGravityModifier;
     [Range(0f, 20f)]
@@ -241,6 +241,8 @@ public class PlayerController : MonoBehaviour
     public void ApplyGravityOnPlayer()
     {
         playerBody.AddForce(Vector3.Scale( new Vector3(Physics.gravity.x, Physics.gravity.y * actualGravityModifier, Physics.gravity.z), transform.lossyScale));
+        Debug.Log(Physics.gravity.y);
+        Debug.Log(Physics.gravity.y * actualGravityModifier);
     }
 
     public void SwitchPlayerState(PlayerState newstate)

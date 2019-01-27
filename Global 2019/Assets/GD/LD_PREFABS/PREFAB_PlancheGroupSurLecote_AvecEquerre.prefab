@@ -55,7 +55,7 @@ GameObject:
   - component: {fileID: 305481887189398781}
   m_Layer: 9
   m_Name: PREFAB_PlancheGroupSurLecote_AvecEquerre
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 2027282698916810639}
   m_Layer: 9
   m_Name: Planche002 (3)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -171,7 +171,7 @@ GameObject:
   - component: {fileID: 3052184621461110124}
   m_Layer: 9
   m_Name: Planche002
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -248,7 +248,7 @@ GameObject:
   - component: {fileID: 6249059594882261498}
   m_Layer: 9
   m_Name: Planche002 (1)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -325,7 +325,7 @@ GameObject:
   - component: {fileID: 3783422237781715305}
   m_Layer: 9
   m_Name: Planche002 (2)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

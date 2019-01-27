@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 807657014474723113}
   m_Layer: 0
   m_Name: Carton Petit
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -60,7 +60,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 72bbb2e9163ac4e4bab2bf81235a4a6e, type: 2}
+  - {fileID: 2100000, guid: c3f0a34e0c3c3e74c8f184748fe668c5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -113,11 +113,11 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 807657014474723107}
   serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 500
-  m_AngularDrag: 40
+  m_Mass: 1000
+  m_Drag: 0
+  m_AngularDrag: 0
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 14
+  m_Constraints: 0
   m_CollisionDetection: 0

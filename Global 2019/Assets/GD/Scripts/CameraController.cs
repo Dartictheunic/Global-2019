@@ -48,8 +48,10 @@ public class CameraController : MonoBehaviour
 
             if (isControlable)
             {
-                velocityX += xSpeed * Input.GetAxis("CamX") * 0.02f;
-                velocityY += ySpeed * Input.GetAxis("CamY") * 0.02f;
+                if (Mathf.Abs(Input.GetAxis("CamX")) >.1f)
+                velocityX += xSpeed * Input.GetAxisRaw("CamX") * 0.02f;
+                if (Mathf.Abs(Input.GetAxis("CamY")) >.1f)
+                velocityY += ySpeed * Input.GetAxisRaw("CamY") * 0.02f;
             }
 
             rotationYAxis += velocityX;

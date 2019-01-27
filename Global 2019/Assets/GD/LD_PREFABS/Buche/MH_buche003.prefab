@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 4141911974194877355}
   - component: {fileID: 7562998585775878693}
   - component: {fileID: 5538967480622235752}
+  - component: {fileID: 759428334574603785}
+  - component: {fileID: 140984405117839578}
   m_Layer: 0
   m_Name: MH_buche003
   m_TagString: Untagged
@@ -93,6 +95,34 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 14
   m_Mesh: {fileID: 4300000, guid: 8cc60909ae1bc1f4abe67c3ada1cb9a8, type: 3}
+--- !u!114 &759428334574603785
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3044887365104990720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f9a90ba43b32284ab14c507b767c8e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!54 &140984405117839578
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3044887365104990720}
+  serializedVersion: 2
+  m_Mass: 10000
+  m_Drag: 1
+  m_AngularDrag: 0
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &8178661555803572117
 GameObject:
   m_ObjectHideFlags: 0
@@ -119,8 +149,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8178661555803572117}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.002, y: 0.0164, z: -0.00011403}
+  m_LocalScale: {x: 1.6280046, y: 2.2361028, z: 1.1986799}
   m_Children: []
   m_Father: {fileID: 2122245007652640520}
   m_RootOrder: 0
@@ -133,7 +163,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8178661555803572117}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 0.017469024, y: 0.015696459, z: 0.08343764}

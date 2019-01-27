@@ -77,6 +77,12 @@ public class IPickedSomething : MonoBehaviour
             myPlayer.playerAnim.SetTrigger("pickup");
         }
 
+        if (poolingAnObject==false)
+        {
+            inSlot = slotVide;
+        }
+
+        inSlot.transform.position = main.transform.position;
 
 
 
@@ -105,11 +111,11 @@ public class IPickedSomething : MonoBehaviour
     private void PickUp(GameObject child)
     {
         poolingAnObject = true;
-        slotOldTransform = child.transform.parent;
-        slotDifferenceAtPickup = child.transform.position - transform.position;
+       // slotOldTransform = child.transform.parent;
+       // slotDifferenceAtPickup = child.transform.position - transform.position;
         child.transform.position = main.transform.position;
         child.GetComponent<Collider>().isTrigger = true;
-        child.transform.parent = main.transform;
+       // child.transform.parent = main.transform;
     }
 
     private void Drop(GameObject lastObject)
