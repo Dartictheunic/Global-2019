@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class IPickedSomething : MonoBehaviour
 {
+    public PlayerController myPlayer;
     [SerializeField]
 
     private List<float> distancesToPlayer;
@@ -47,7 +48,7 @@ public class IPickedSomething : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown("f") && poolingAnObject == false && objectInRange.Count > 1)
+        if (Input.GetButtonDown("Push") && poolingAnObject == false && objectInRange.Count > 1)
         {
             for (int i = 0; i < objectInRange.Count; i++)
             {
@@ -59,18 +60,21 @@ public class IPickedSomething : MonoBehaviour
 
             inSlot = objectInRange[0];
             PickUp(inSlot);
+            myPlayer.playerAnim.SetTrigger("pickup");
         }
 
-        else if (Input.GetKeyDown("f") && poolingAnObject == false && objectInRange.Count == 1)
+        else if (Input.GetButtonDown("Push") && poolingAnObject == false && objectInRange.Count == 1)
         {
             inSlot = objectInRange[0];
             PickUp(inSlot);
+            myPlayer.playerAnim.SetTrigger("pickup");
         }
 
-        else if (Input.GetKeyDown("f") && poolingAnObject == true)
+        else if (Input.GetButtonDown("Push") && poolingAnObject == true)
         {
             distancesToPlayer.Clear();
             Drop(inSlot);
+            myPlayer.playerAnim.SetTrigger("pickup");
         }
 
 

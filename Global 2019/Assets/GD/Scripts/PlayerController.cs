@@ -303,14 +303,26 @@ public class PlayerController : MonoBehaviour
             if (Input.GetButton("Push"))
             {
                 isPushing = true;
+                playerAnim.SetBool("push", true);
                 transform.LookAt(other.gameObject.transform);
                 pushable.Push(playerBody.velocity);
             }
 
             else
             {
+                playerAnim.SetBool("push", false);
                 isPushing = false;
             }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        var pushable = other.GetComponent<IPushable>();
+        if (pushable != null)
+        {
+            playerAnim.SetBool("push", false);
+            isPushing = false;
         }
     }
 
