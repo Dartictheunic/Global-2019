@@ -30,7 +30,8 @@ public class PlayerController : MonoBehaviour
     [Space(20)]
     [Header("Liens à faire")]
     public Transform groundPos;
-
+    public Transform camPos;
+    public Transform rotationTransform;
 
     [Space(20)]
     [Header("Variables Debug prog")]
@@ -143,10 +144,16 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void RotatePlayer()
+    {
+        transform.LookAt(rotationTransform);
+    }
+
     private void FixedUpdate()
     {
         MovePlayerOnXZPlan();
         ApplyGravityOnPlayer();
+        RotatePlayer();
         playerVerticalVelocity.AddKey(Time.time, playerBody.velocity.y);
         downVelocityAccumulatedDuringJumpCurve.AddKey(Time.time, downVelocityAccumulatedDuringJump);
         if (isFalling)
@@ -194,8 +201,17 @@ public class PlayerController : MonoBehaviour
 
     public Vector3 PlayerInputTransformed()
     {
-        Vector3 rawInput = Vector3.Scale(new Vector3(Input.GetAxisRaw("Horizontal"), playerBody.velocity.y, Input.GetAxisRaw("Vertical")), transform.lossyScale);
-        return rawInput;
+        Vector3 fromCameraToMe = transform.position - camPos.position;
+        fromCameraToMe.y = 0;
+
+        fromCameraToMe.Normalize();
+
+        float moveHorizontal = Input.GetAxisRaw("Horizontal");
+        float moveVertical = Input.GetAxisRaw("Vertical");
+
+        Vector3 movement = (fromCameraToMe * moveVertical + camPos.right * moveHorizontal);
+        movement = Vector3.Scale(movement, transform.lossyScale);
+        return movement;
     }
 
     public void ApplyGravityOnPlayer()
